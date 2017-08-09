@@ -45,5 +45,5 @@ function render_ajax_error($message = 'Error') {
 // Get serices URL
 function array_map_get_services_url($service)
 {
-	return $service[2];
+	return $service;
 }

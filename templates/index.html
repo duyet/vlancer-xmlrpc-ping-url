@@ -98,14 +98,15 @@
 	            row[md5(url)] = $('<div>').append(row[md5(url)].clone()).html();
 
             	for (var j in window.config.services) {
-            		var service = window.config.services[j];
+            		var service_url = window.config.services[j][2];
+            		var service_type = window.config.services[j][0];
 
-            		console.log('Ping', url, 'to', service, status)
             		update_url_status(url);
 
             		$.ajax({
             			url: './?p=ping&url=' + encodeURIComponent(url)
-            				+ '&service=' + encodeURIComponent(service),
+            				+ '&service=' + encodeURIComponent(service_url)
+            				+ '&service_type=' + encodeURIComponent(service_type),
 
             			success: function(data) {
             				var _url = data.url;
@@ -117,7 +118,7 @@
             			error: function($xhr) {
             				var data = $xhr.responseJSON;
             				console.log(data);
-            				
+
             				var _url = data.url;
             				status[md5(_url)]['error'] += 1;
             				update_url_status(_url);
@@ -171,9 +172,8 @@
             <div class="field">
                 <label class="label">URLs</label>
                 <div class="control">
-                    <textarea class="textarea" id="urls" placeholder="Enter URLs">http://localhost/ping_url_google/?p=index
-http://localhost/ping_url_google/?p=index
-http://localhost/ping_url_googlex/?p=index2
+                    <textarea class="textarea" id="urls" placeholder="Enter URLs">https://duyet.net
+https://blog.duyet.net
                     </textarea>
                 </div>
             </div>

@@ -7,6 +7,7 @@ define('INCLUDE_DIR', 'includes/');
 define('TEMPLATE_DIR', 'templates/');
 
 require_once(INCLUDE_DIR . 'functions.php');
+require_once(INCLUDE_DIR . 'rpc.php');
 require_once(INCLUDE_DIR . 'data/xmlrpc_services.php');
 
 $_p = isset($_GET) && isset($_GET['p']) ? $_GET['p'] : 'index';
@@ -32,28 +33,35 @@ if ($_p == 'config') {
 if ($_p == 'ping') {
 	$url = isset($_GET['url']) ? trim($_GET['url']) : '';
 	$service = isset($_GET['service']) ? trim($_GET['service']) : '';
+	$service_type = isset($_GET['service_type']) ? trim($_GET['service_type']) : 'weblogUpdates.extendedPing';
 
-	echo $service;
 
-	if (!$url) {
+	if (!$url or !$service or !$service_type) {
 		render_ajax_error('Please submit URL in url param.');
 	}
 
 	// TODO: Ping
-	sleep(rand(0,3));
-	$success = rand(0,1) == 1 ? true : false;
+	$data = rpcXMLCreate($url, $url, $url, '', $service_type);
+	$results = getRPC($service, $data);
+
+	$code = $results[0];
+	$message = $results[1];
+
+	$success = $code == 0 ? true : false;
 
 	// Response result
 	if ($success) 
 		return render_ajax(array(
 			'url' => $url,
 			'status' => 'success',
-			'message' => 'Thank for ping!',
+			'code' => $code,
+			'message' => $message,
 		));
 	else
 		return render_ajax_error(array(
 			'url' => $url,
-			'message' => 'Error!'
+			'message' => $message,
+			'code' => $code
 		));
 }
 

@@ -8,7 +8,8 @@ function getRPC($url, $data)
     $rand = array_rand($userAgents);
     $agent = $userAgents[$rand];
 
-    $url_info = @parse_url($url);
+    $url_info = parse_url($url);
+
     $url_info['port'] = isset($url_info['port']) ? intval($url_info['port']) : 80;
     if (isset($url_info['path'])) {
         if (substr($url_info['path'], 0, 1) != '/') {
@@ -101,6 +102,8 @@ function getRPC($url, $data)
 
     $header = array( "Content-Type:text/xml", "Host:" . $url_info['host'] . ":" . $url_info['port'], "User-Agent:" . $agent, "Content-length: " . strlen($data) );
 
+
+
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -187,4 +190,4 @@ function rpcXMLCreate($webtitle, $webhome, $linkpage, $webrss = '', $method = 'w
     return $xml->saveXML();
 }
 
-echo rpcXMLCreate('OK', 'http://google.com', 'http://google.com/12222');
+
