@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Ping URL/Sitemap</title>
+
+    <link rel="prefetch" href="./static/img/loader2.gif" />
+
+    <link rel="stylesheet" type="text/css" href="./static/css/bulma.css" />
+    <script type="text/javascript" src="./static/js/jquery-3.2.1.slim.min.js"></script>
+    <script type="text/javascript" src="./static/js/md5.js"></script>
+    <style type="text/css">
+    	.loading {
+    		width: 35px;
+    		height: 35px;
+    		display: block;
+    		margin: auto;
+    	}
+    	.status_box {
+    		text-align: center;
+    	}
+    </style>
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+    	window.config = {};
+    	$.ajax({ url: './?p=config',
+    		success: function(data) {
+	    		window.config.num_services = data.number_of_services;
+	    		window.config.services = data.services;
+	    	},
+	    	error: function() {
+    			alert('Server error!');
+    		}
+    	});
+
+        $('#submit').click(function() {
+        	$(this).addClass('is-loading');
+        	$('#result_section').html('');
+
+            // Get list URLs
+            var urls = $('#urls').val();
+            if (!urls) {
+            	$(this).removeClass('is-loading');
+            	return alert('Please enter URLs!');
+            }
+
+            urls = urls.split('\n')
+            	.map(function(t) { return t.trim() })
+            	.filter(function(t) { return t })
+            	.filter(function(elem, index, self) {
+				    return index == self.indexOf(elem);
+				})
+            $('#urls').val(urls.join("\n"));
+
+            var tab = $('<table />').addClass('table is-bordered is-fullwidth');
+
+            $('#result_section').html(tab);
+
+            var status = {};
+            var row = {};
+
+            function update_url_status(url) {
+            	var status_msg = '';
+            	if (status[md5(url)]['success'] == status[md5(url)]['total']) {
+            		status_msg = '<span class="tag is-success">'+ status[md5(url)]['success'] +'/' + status[md5(url)]['total'] + '</span>';
+            	} else {
+            		status_msg = '<span class="tag is-light">'+ status[md5(url)]['success'] +'/' + status[md5(url)]['total'] + '</span>';
+            	}
+
+            	if (status[md5(url)]['error'] > 0) {
+            		status_msg += '<br /><span class="tag is-danger">'+ status[md5(url)]['error'] +' error</span>'
+            	}
+
+        		if (status[md5(url)]['success'] + status[md5(url)]['error'] < status[md5(url)]['total']) {
+        			status_msg += '<img src="./static/img/loader2.gif" class="loading" />'
+        		}
+
+            	$('#result_section table .' + md5(url)).remove();
+				$('#result_section table').append($(row[md5(url)]).append(
+					$('<td />').addClass('status_box').append(status_msg)
+				))
+            }
+
+            // Ping URL
+            for (var i in urls) {
+            	var url = urls[i];
+            	status[md5(url)] = {
+            		success: 0,
+            		total: window.config.num_services,
+            		error: 0
+            	}
+
+            	row[md5(url)] = $('<tr />').addClass(md5(url))
+	            	.append(
+	            		$('<td />').text(url)
+	            	);
+	            row[md5(url)] = $('<div>').append(row[md5(url)].clone()).html();
+
+            	for (var j in window.config.services) {
+            		var service = window.config.services[j];
+
+            		console.log('Ping', url, 'to', service, status)
+            		update_url_status(url);
+
+            		$.ajax({
+            			url: './?p=ping&url=' + encodeURIComponent(url)
+            				+ '&service=' + encodeURIComponent(service),
+
+            			success: function(data) {
+            				var _url = data.url;
+
+            				status[md5(_url)]['success'] += 1;
+            				update_url_status(_url)
+            			},
+
+            			error: function($xhr) {
+            				var data = $xhr.responseJSON;
+            				console.log(data);
+            				
+            				var _url = data.url;
+            				status[md5(_url)]['error'] += 1;
+            				update_url_status(_url);
+            			}
+            		});
+            	}
+            }
+
+            $(this).removeClass('is-loading');
+        })
+    })
+    </script>
+</head>
+
+<body>
+    <section class="hero is-primary">
+        <div class="hero-body">
+            <div class="container">
+                <div class="columns is-vcentered">
+                    <div class="column">
+                        <p class="title">
+                            Ping URL.
+                        </p>
+                        <p class="subtitle">
+                            Ping URL via XML-RPC.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-foot">
+            <div class="container">
+                <nav class="tabs is-boxed">
+                    <ul>
+                        <li class="is-active">
+                            <a href="./?p=index">Index</a>
+                        </li>
+                        <li>
+                            <a href="./?p=list_services">List services</a>
+                        </li>
+                        <li>
+                            <a href="./?p=contact">Contact</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </section>
+    <section class="section" id="form_section">
+        <div class="container">
+            <div class="field">
+                <label class="label">URLs</label>
+                <div class="control">
+                    <textarea class="textarea" id="urls" placeholder="Enter URLs">http://localhost/ping_url_google/?p=index
+http://localhost/ping_url_google/?p=index
+http://localhost/ping_url_googlex/?p=index2
+                    </textarea>
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    <button class="button is-primary" id="submit">Submit</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="section" style="padding-top:0">
+        <div class="container" id="result_section">
+        </div>
+    </section>
+</body>
+
+</html>

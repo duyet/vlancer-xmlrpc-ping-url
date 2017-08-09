@@ -1,0 +1,3 @@
+<?php 
+
+$proxy = array();
