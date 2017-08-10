@@ -37,6 +37,7 @@
         $('#submit').click(function() {
         	$(this).addClass('is-loading');
         	$('#result_section').html('');
+        	$('#log_section').html('');
 
             // Get list URLs
             var urls = $('#urls').val();
@@ -53,9 +54,11 @@
 				})
             $('#urls').val(urls.join("\n"));
 
-            var tab = $('<table />').addClass('table is-bordered is-fullwidth');
+            // Initial empty table
+            $('#result_section').html($('<table />').addClass('table is-bordered is-fullwidth'));
 
-            $('#result_section').html(tab);
+            // Initial empty log 
+            $('#log_section').html($('<pre />').append($('<code />')));
 
             var status = {};
             var row = {};
@@ -80,6 +83,12 @@
 				$('#result_section table').append($(row[md5(url)]).append(
 					$('<td />').addClass('status_box').append(status_msg)
 				))
+            }
+
+            function log_ping_result(data) {
+            	var log_text = 'Ping ' + data.url + ' to ' + data.service + ': ' + data.message;
+            	var old_log = $('#log_section pre code').text();
+            	$('#log_section pre code').text(old_log + '\n' + log_text);
             }
 
             // Ping URL
@@ -112,7 +121,8 @@
             				var _url = data.url;
 
             				status[md5(_url)]['success'] += 1;
-            				update_url_status(_url)
+            				update_url_status(_url);
+            				log_ping_result(data);
             			},
 
             			error: function($xhr) {
@@ -122,6 +132,7 @@
             				var _url = data.url;
             				status[md5(_url)]['error'] += 1;
             				update_url_status(_url);
+            				log_ping_result(data);
             			}
             		});
             	}
@@ -186,6 +197,10 @@ https://blog.duyet.net
     </section>
     <section class="section" style="padding-top:0">
         <div class="container" id="result_section">
+        </div>
+    </section>
+    <section class="section" style="padding-top:0">
+        <div class="container" id="log_section">
         </div>
     </section>
 </body>

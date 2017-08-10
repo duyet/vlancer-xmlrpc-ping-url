@@ -19,6 +19,12 @@ if ($_p == 'list_services') {
 }
 
 // =======================================
+// Contact  =========================
+if ($_p == 'contact') {
+	render_template('contact.html');
+}
+
+// =======================================
 // AJAX Config ===========================
 if ($_p == 'config') {
 	$number_of_services = count($services);
@@ -42,26 +48,27 @@ if ($_p == 'ping') {
 
 	// TODO: Ping
 	$data = rpcXMLCreate($url, $url, $url, '', $service_type);
+	
+	// Ping and see result
 	$results = getRPC($service, $data);
-
 	$code = $results[0];
 	$message = $results[1];
-
 	$success = $code == 0 ? true : false;
 
 	// Response result
 	if ($success) 
 		return render_ajax(array(
 			'url' => $url,
-			'status' => 'success',
 			'code' => $code,
 			'message' => $message,
+			'service' => $service
 		));
 	else
 		return render_ajax_error(array(
 			'url' => $url,
 			'message' => $message,
-			'code' => $code
+			'code' => $code,
+			'service' => $service
 		));
 }
 
